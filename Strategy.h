@@ -2,18 +2,33 @@
 #include <vector>
 #include <iostream>
 
+typedef std::vector<std::pair<int, int>> TMove;
 
-namespace ruslan1 {
-    class IStrategy {
-    public:
-        typedef std::vector<std::pair<int, int>> TMove;
-
-        TMove Decide(std::vector<TMove> GoodMoves) {
-            if (!GoodMoves.empty())
-                return GoodMoves[0];
+class IStrategy {
+public:
+    typedef std::vector<std::pair<int, int>> TMove;
+    std::vector<int> factors;
+    std::vector<float> coeffs{ 3.26628283e+08,   7.20942651e+06,   3.12729207e+08,   6.58251985e+06,
+        2.98830132e+08,   5.95561320e+06,   2.84931056e+08,   5.32870654e+06,
+        2.71031980e+08,  4.70179988e+06,   2.57132904e+08,   4.07489310e+06,
+        2.43233828e+08,   3.44798658e+06,   2.29334752e+08,   2.82107995e+06,
+        2.15435676e+08,   2.19417328e+06,   2.01536600e+08,   1.56726664e+06,
+        1.87637524e+08,   9.40359913e+05,   1.73738449e+08, - 1.80235662e+08,
+        1.59839373e+08,   1.47323064e+07,   1.45940297e+08,   1.41053997e+07,
+        1.32041221e+08,   1.34784930e+07,   1.18142145e+08,   1.28515864e+07,
+        1.04243069e+08,   1.22246797e+07,   9.03439934e+07,   1.15977731e+07,
+        7.64449174e+07,   1.09708664e+07,   6.25458415e+07,   1.03439598e+07,
+        4.86467656e+07,   9.71705311e+06,   3.47476897e+07,   9.09014646e+06,
+        2.08486138e+07,   8.46323978e+06,   6.94953797e+06,   5.29736120e+07,
+        - 1.66906521e-01,   2.01851614e-01,   2.72180140e-03, - 3.60075198e-03,
+        1.33165114e-01, - 1.30555123e-01, - 6.94953794e+06, - 3.13453326e+05 };
+    TMove Decide(std::vector<TMove> GoodMoves, std::vector<int> board) {
+        std::vector<int> copy(board);
+        for (auto Move : GoodMoves) {
+            // TO DO: дописать фигню !!!
         }
-        bool iswhite;
-    private:
+    }
+    bool iswhite;
+private:
 
-    };
-}
+};
