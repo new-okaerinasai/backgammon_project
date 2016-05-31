@@ -2,69 +2,15 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include "opennn09\source\opennn.h"
 
 typedef std::vector<std::pair<int, int>> TMove;
-std::vector<double> coefs{ 1.0 ,
--1.0228723239e-16 ,
--3.95113347137e-16 ,
--1.95951153519e-16 ,
--8.21015815398e-16 ,
--7.52363659614e-16 ,
--4.97542541319e-16 ,
--2.51653640675e-16 ,
--2.88465785949e-16 ,
--2.61101009317e-16 ,
--1.3538833312e-16 ,
--4.45033860234e-16 ,
--4.28159486521e-16 ,
--8.00384120701e-16 ,
--3.71546651198e-16 ,
--4.3706475665e-16 ,
--5.28393008886e-16 ,
--6.22677446683e-16 ,
--7.43917006252e-16 ,
--6.36432217213e-16 ,
--2.56965397621e-16 ,
--1.6522688181e-16 ,
--8.86531008108e-17 ,
--6.11345158612e-17 ,
-1.26049591249e-17 ,
--4.90312728859e-16 ,
--1.89691972255e-16 ,
--2.57674333234e-16 ,
--3.65621247639e-16 ,
--2.55391126908e-16 ,
--4.32322308371e-16 ,
--3.60219550871e-16 ,
--1.20172264338e-16 ,
-4.20397982614e-17 ,
--1.07548314308e-16 ,
--1.25916385404e-16 ,
--2.68410383525e-17 ,
-9.14227850853e-17 ,
--2.33681337017e-16 ,
--5.51160135162e-16 ,
--6.68210030808e-16 ,
--5.92248339343e-16 ,
--2.66901495475e-16 ,
--1.10280897873e-16 ,
--6.91295267943e-17 ,
-9.9833472131e-17 ,
-5.38467273391e-17 ,
--2.36504493063e-16 ,
--3.93136381364e-16 ,
-5.98744651328e-16 ,
-1.0061796466e-15 ,
-1.45529061545e-16 ,
-9.71829656949e-16 ,
--1.48534322157e-15 ,
-6.11060677994e-17 ,
-0.0 ,
-0.0 ,
-0.0 ,
-0.0 ,
-0.0 ,
-0.0 };
+OpenNN::Vector<double> kek;
+
+std::vector<double> coefs(60,1);
+
+using namespace OpenNN;
+
 class IStrategy {
 public:
     typedef std::vector<std::pair<int, int>> TMove;
@@ -75,7 +21,6 @@ public:
         }
         return result;
     }
-    
     
     std::vector<int> UpdateState(std::vector<int>& board, TMove Move) {
         std::vector<int> new_board(board);
@@ -92,22 +37,44 @@ public:
         return new_board;
     }
 
+    Matrix<double> W_1;
     TMove Decide(std::vector<TMove> GoodMoves, std::vector<int>& board) {
         int result;
-        int max = INT_MIN;
+        int min = INT_MAX;
+        
         for (int i = 0; i != GoodMoves.size(); ++i) {
             std::vector<int> new_board = UpdateState(board, GoodMoves[i]);
-            auto c = scalar_product(GetFactors(new_board));
-            if (c > max) {
+            auto fact = GetFactors(new_board);
+
+            Vector<double> input_1(fact.size());
+
+            for (int i = 0; i != input_1.size(); ++i) {
+                input_1[i] = fact[i];
+            }
+
+            auto a1 = W.dot(input_1);
+
+            for (int i = 0; i != a1.size(); ++i) {
+                a1[i] = sigmoid(a1[i]);
+            }
+
+            auto a2 = W_1.dot(a1);
+
+            
+            for (int i = 0; i != a2.size(); ++i) {
+                a2[i] = sigmoid(a2[i]);
+            }
+            double c = W_2.dot(a2);
+            if (c < min) {
                 result = i;
-                max = c;
+                min = c;
             }
         }
         if (GoodMoves.size() > 0)
             return GoodMoves[result];
     }
 
-    void UpdateCoefficients(std::vector<int>& first, std::vector<int>& second) {
+    /*void UpdateCoefficients(std::vector<int>& first, std::vector<int>& second) {
         float c = 0, I_norm = 0;
         for (int i = 0; i != first.size(); ++i) {
             c += coefs[i] * (first[i] - second[i]);
@@ -118,18 +85,65 @@ public:
             int sign = 1;
             if (c < 0) sign = -1;
             coefs[i] -= 0.01 * sign * (first[i] - second[i]);
-            if (I_norm != 0) {
-                coefs[i] /= I_norm;
+        }
+    }*/
+    
+    
+    Matrix<double> W = Matrix<double>(60, 30, 0.1);
+    Vector<double> W_2 = Vector<double>(30, 0.1);
+
+    double y_1, y_2;
+
+    double sigmoid(double x) {
+        return (1 / (1 + exp(-x)));
+    }
+
+    void UpdateCoefficients(std::vector<int>& first, std::vector<int>& second) {
+        std::ofstream first_v("first_v.txt");
+        std::ofstream second_v("second_v.txt");
+
+        for (int i = 0; i != first.size(); ++i) {
+            first_v << first[i] << ' ';
+            second_v << second[i] << ' ';
+        }
+        double y, y_;
+        first_v.close();
+        second_v.close();
+
+        Vector<double> input_1("first_v.txt");
+        Vector<double> input_2("second_v.txt");
+        input_1 /= input_1.calculate_norm();
+        input_2 /= input_2.calculate_norm();
+
+        Vector<double> a1, a2;
+
+        a1 = W.dot(input_1);
+        a2 = W.dot(input_2);
+
+        for (int i = 0; i != a1.size(); ++i) {
+            a1[i] = sigmoid(a1[i]);
+            a2[i] = sigmoid(a2[i]);
+        }
+
+        y_ = W_2.dot(a1);
+        y = W_2.dot(a2);
+
+        for (int i = 0; i != 60; ++i) {
+            for (int j = 0; j != 30; ++j) {
+                W[i][j] += 0.01 * (a1[j])*(1 - a1[j])*(y_ - y)*first[i];
             }
+        }
+        for (int i = 0; i != 30; ++i) {
+            W_2[i] += 0.01 * (y_ - y) * (a1[i] - a2[i]);
         }
     }
 
-    TMove DecideRandom(std::vector<TMove> GoodMoves) {
+    TMove DecideRandom(std::vector<TMove>& GoodMoves) {
         if (GoodMoves.size() > 0) {
-            int ind = rand() % GoodMoves.size();
-            return GoodMoves[ind];
+            return GoodMoves[rand() % GoodMoves.size()];
         }
     }
+
     std::vector<int> GetFactors(std::vector<int>& board) {
         std::vector<int> factors(60, 0);
         for (int i = 0; i != 24; ++i) {

@@ -3,6 +3,7 @@
 #include <iostream>
 #include "Strategy.h"
 #include <fstream>
+#include "opennn09\source\opennn.h"
 
 class Referee {
 public:
@@ -209,7 +210,7 @@ public:
     bool make_game(IStrategy& white, IStrategy& black) {
         while (!noWhites() && !noBlacks()) {
             std::pair<int, int> Dices = GetDices();
-            std::vector<int> before = white.GetFactors(Board);
+            //std::vector<int> before = white.GetFactors(Board);
             TMove Decision1 = white.Decide(GetGoodMoves(Dices, white.iswhite), Board);
             UpdateState(Decision1);
             if (noWhites()) return 0;
@@ -217,8 +218,8 @@ public:
             TMove Decision2 = black.DecideRandom(GetGoodMoves(Dices, black.iswhite));
             UpdateState(Decision2);
             if (noBlacks()) return 1;
-            std::vector<int> after = white.GetFactors(Board);
-            white.UpdateCoefficients(before, after);
+            //std::vector<int> after = white.GetFactors(Board);
+            //white.UpdateCoefficients(before, after);
         }
     }
 
@@ -227,15 +228,12 @@ public:
         player1.iswhite = true;
         player2.iswhite = false;
         
-        for (int i = 0; i != 5000; ++i) {          
+        for (int i = 0; i != 2000; ++i) {
             make_game(player1, player2);
             Board = { 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
         }
-        for (auto elem : coefs) {
-            std::cout << elem << ", ";
-        }
-        std::cout << '\n';
-
+        player1.W.save("matrix_coefs.dat");
+        player1.W_2.save("lin_coefs.dat");
     }
 
     double make_100_games(IStrategy white, IStrategy black, const std::vector<int>& board/*, bool shouldWin*/) {
@@ -245,7 +243,12 @@ public:
         int player2 = 0;
         srand(3228);
         Board = board;
-        for (int i = 0; i != 10000; ++i) {
+        white.W.load("syn1.dat");
+        white.W_1.load("syn2.dat");
+        white.W_2.load("syn3.dat");
+        for (int i = 0; i != 2000; ++i) {
+            if (i % 100 == 0)
+                std::cout << i << '\n';
             if (make_game(white, black)) player1++; else player2++;
             Board = board;
         }

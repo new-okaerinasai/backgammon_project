@@ -5,6 +5,8 @@
 #include "Strategy.h"
 #include <ctime>
 #include <fstream>
+#include <string>
+#include "opennn09\source\opennn.h"
 
 int main() {
     Referee Referee1;
@@ -13,4 +15,5 @@ int main() {
     clock_t timer = clock();
     std::cout << Referee1.make_100_games(player1, player2, std::vector<int> { 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
     //Referee1.Educate();
+
 }
