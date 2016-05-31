@@ -41,7 +41,9 @@ public:
     TMove Decide(std::vector<TMove> GoodMoves, std::vector<int>& board) {
         int result;
         int min = INT_MAX;
-        
+        W.load("syn1.dat");
+        W_1.load("syn2.dat");
+        W_2.load("syn3.dat");
         for (int i = 0; i != GoodMoves.size(); ++i) {
             std::vector<int> new_board = UpdateState(board, GoodMoves[i]);
             auto fact = GetFactors(new_board);

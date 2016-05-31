@@ -223,6 +223,46 @@ public:
         }
     }
 
+    void Visualize(IStrategy& ai) {
+        while (!noWhites() && !noBlacks()) {
+            std::pair<int, int> Dices = GetDices();
+            PrintBoard();
+            std::cout << "Dice " << Dices.first << ' ' << Dices.second << '\n';
+            std::cout << "What do you choose? ";
+            std::vector<TMove> Moves = GetGoodMoves(Dices, true);
+            std::cout << "availible moves are:" << '\n';
+            for (size_t i = 1; i != Moves.size() + 1; ++i){
+                std::cout << i << ") ";
+                for (auto move : Moves[i - 1]){
+                    std::cout << '(' << move.first << ',' << move.second << ") ";
+                }
+                std::cout << '\n';
+            }
+            TMove Decision1;
+            while (true) {
+                int number;
+                std::cin >> number;
+                if (Moves.size() == 0) {
+                    std::cout << "You can't move. Sorry :(" << '\n';
+                    break;
+                }
+                if (number > Moves.size() || number < 1) {
+                    std::cout << "Wrong Move. Try again" << '\n';
+                }
+                else {
+                    Decision1 = Moves[number - 1];
+                    break;
+                }
+            }
+            UpdateState(Decision1);
+            Dices = GetDices();
+            TMove Decision2 = ai.Decide(GetGoodMoves(Dices, ai.iswhite), Board);
+            UpdateState(Decision2);
+            //std::vector<int> after = white.GetFactors(Board);
+            //white.UpdateCoefficients(before, after);
+        }
+    }
+
     void Educate() {
         IStrategy player1, player2;
         player1.iswhite = true;
@@ -368,8 +408,8 @@ public:
 
     void PrintBoard() {
         for (int i = 0; i < 24; ++i) {
-            dataset << Board[i] << ' ';
+            std::cout << Board[i] << ' ';
         }
-        dataset << '\n';
+        std::cout << '\n';
     }
 };
